@@ -8,7 +8,13 @@ const api = require('./routes/api');
 
 app.listen(3000, () => {
     console.log("Server started on port 3000");
+    currentDate();
 });
+
+const currentDate = () => {
+    let dateTime = new Date();
+    console.log(dateTime);
+};
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());

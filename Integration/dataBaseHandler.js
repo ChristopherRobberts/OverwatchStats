@@ -5,7 +5,7 @@ const util = require('util');
 const dataBase = {
     url: "mongodb://localhost:27017/mytest",
     name: "overwatchstats",
-    parserOption: { useNewUrlParser: true }
+    parserOption: {useNewUrlParser: true}
 };
 
 module.exports = {
@@ -15,7 +15,10 @@ module.exports = {
 
         mongoClient.connect(dataBase.url, dataBase.parserOption, (err, db) => {
             if (err) throw err;
-            const cursor = db.db(dataBase.name).collection('users').find({userName : un});
+            const cursor = db
+                .db(dataBase.name)
+                .collection('users')
+                .find({userName: un});
             cursor.forEach((doc) => {
                 results.push(doc);
             }, () => {
@@ -24,9 +27,17 @@ module.exports = {
                     return;
                 }
 
-                db.db(dataBase.name).collection('users').insertOne({userName: un, password: pw}, (err, db) => {
-                    (err)? fn(err) : fn("user created");
-                })
+                db
+                    .db(dataBase.name)
+                    .collection('users')
+                    .insertOne(
+                        {
+                            userName: un,
+                            password: pw,
+                            gameData: []
+                        }, (err, db) => {
+                            (err) ? fn(err) : fn("user created");
+                        })
             });
         })
     },
@@ -34,13 +45,39 @@ module.exports = {
     getUserInfo: (un, pw, fn) => {
         const results = [];
         mongoClient.connect(dataBase.url, dataBase.parserOption, (err, db) => {
-            const cursor = db.db(dataBase.name).collection('users').find({userName: un});
+            const cursor = db
+                .db(dataBase.name)
+                .collection('users')
+                .find({userName: un});
             cursor.forEach((doc) => {
                 results.push(doc);
             }, () => {
                 fn(results);
             });
         })
+    },
+
+    newGameData: (un, hero, map, outcome, sr, date, fn) => {
+        mongoClient.connect(dataBase.url, dataBase.parserOption, (err, db) => {
+            db
+                .db(dataBase.name)
+                .collection('users')
+                .updateOne({userName: un}, {
+                    $push:
+                        {
+                            gameData:
+                                {
+                                    date: date,
+                                    hero: hero,
+                                    outcome: outcome,
+                                    map: map,
+                                    sr: sr
+                                }
+                        }
+                }, (err, db) => {
+                    (err) ? fn(err) : fn("success");
+                });
+        });
     }
 };
 
